@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Switch Checker Online</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        var ip = '';
+        var port = '';
+
+        function get_updates() {
+            console.log('update');
+
+            var formData = new FormData(document.getElementsByName("update")[0]);
+            ip = formData.get('ip');
+            port = formData.get('port');
+            var url = '/api/update?' + $.param({ip: ip, port: port});
+            fetch(url, {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('title').innerHTML = JSON.stringify(data["descr"]);
+                    document.getElementById('sysname').innerHTML = JSON.stringify(data["sysname"]);
+                    document.getElementById('status').innerHTML = JSON.stringify(data["status"]);
+                    document.getElementById('speed').innerHTML = JSON.stringify(data["speed"]);
+                    {#document.getElementById('title').innerHTML = JSON.stringify(data["macs"]);#}
+                })
+                .catch(error => console.log(error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Switch Checker Online (ver.alpha=0.1)</h1>
+    <div>
+        <form name="update" method="get" action="api/update">
+            <p>
+                <a>IP:</a><input type=text name=ip value="192.168.111.29">
+                <a>port:</a><input type=text name=port value="3">
+            </p>
+            <p><input type=button value="Start" onclick="get_updates();"></p>
+        </form>
+        <p>Title: <a id="title"></a></p>
+        <p>Name: <a id="sysname"></a></p>
+        <p>Link status: <a id="status"></a></p>
+        <p>Speed: <a id="speed"></a></p>
+        <p>Addresses: <a id="addresses"></a></p>
+        <br>
+    </div>
+
+</body>
+</html>
