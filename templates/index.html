@@ -2,51 +2,196 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Switch Checker Online</title>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <title>Port Monitoring</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
     <script>
-        var ip = '';
-        var port = '';
+        $(document).ready(function() {
 
-        function get_updates() {
-            console.log('update');
+            var ip_element = document.getElementById('input_ip');
+            var port_element = document.getElementById('input_port');
+            var button = document.getElementById('start_button');
+            var auto_updater;
+            var pic = new Image(50, 50);
 
-            var formData = new FormData(document.getElementsByName("update")[0]);
-            ip = formData.get('ip');
-            port = formData.get('port');
-            var url = '/api/update?' + $.param({ip: ip, port: port});
-            fetch(url, {
-                method: 'GET',
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    document.getElementById('title').innerHTML = JSON.stringify(data["descr"]);
-                    document.getElementById('sysname').innerHTML = JSON.stringify(data["sysname"]);
-                    document.getElementById('status').innerHTML = JSON.stringify(data["status"]);
-                    document.getElementById('speed').innerHTML = JSON.stringify(data["speed"]);
-                    {#document.getElementById('title').innerHTML = JSON.stringify(data["macs"]);#}
+            function ValidateIP(ip) {
+                return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)
+            }
+            function isNumeric(num){
+              return !isNaN(num)
+            }
+
+            ip_element.oninput = function (event) {
+                if (ValidateIP(ip_element.value) === true) {
+                    ip_element.classList.add('is-valid');
+                    ip_element.classList.remove("is-invalid");
+                } else {
+                    ip_element.classList.add('is-invalid');
+                    ip_element.classList.remove("is-valid");
+                }
+            };
+
+            port_element.oninput = function (event) {
+                if (isNumeric(port_element.value) === true) {
+                    port_element.classList.add('is-valid');
+                    ip_element.classList.remove("is-invalid");
+                } else {
+                    port_element.classList.add('is-invalid');
+                    ip_element.classList.remove("is-valid");
+                }
+            };
+
+            function check_valid(ip_val, port_val) {
+                return ValidateIP(ip_val) === true && isNumeric(port_val) === true;
+            }
+
+            button.onclick = function get_updates() {
+                console.log('update');
+                if (check_valid(ip_element.value, port_element.value)) {
+                    update_data(ip_element.value, port_element.value);
+                    clearInterval(auto_updater);
+                    auto_updater = setInterval(update_auto, 3000, ip_element.value, port_element.value)
+                } else {
+                    set_danger_button(timeout=true)
+                }
+            };
+
+            function set_danger_button(timeout=true) {
+                button.disabled = true;
+                button.classList.remove("btn-outline-primary");
+                button.classList.add("btn-danger");
+                if (timeout===true) {
+                    var timeout_button = setTimeout(restore_button, 1000);
+                }
+            }
+
+            function restore_button() {
+                button.disabled = false;
+                button.classList.remove("btn-danger");
+                button.classList.add("btn-outline-primary");
+            }
+
+            function data_up(data) {
+                var today = new Date();
+                    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                    var macs = JSON.parse(JSON.stringify(data["macs"]));
+                    var vlans = JSON.parse(JSON.stringify(data["vlans"]));
+
+                    if (data["status"] === "1-up") {
+                        pic.src = "/static/status-yes.jpg";
+                    } else if (data["status"] === "2-down") {
+                        pic.src = "/static/status-no.jpg";
+                    } else {
+                        pic.src = "/static/status-undef.jpg";
+                    }
+                    document.getElementById('img_status').src = pic.src;
+                    document.getElementById('status').innerHTML = time + "<br>" + JSON.parse(JSON.stringify(data["status"]));
+                    document.getElementById('speed').innerHTML = JSON.parse(JSON.stringify(data["speed"]));
+                    document.getElementById('addresses').innerHTML = '';
+                    for (let i = 0; i < macs.length; i++) {
+                        document.getElementById('addresses').innerHTML += macs[i] + ' VLAN:' + vlans[i] + '<br><br>';
+                    }
+            }
+
+            function update_data(ip_val, port_val) {
+                var url = '/api/update?' + $.param({ip: ip_val, port: port_val});
+                fetch(url, {
+                    method: 'GET',
                 })
-                .catch(error => console.log(error));
-        }
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        document.getElementById('ip_port').innerHTML = ip_val + ':' + port_val;
+                        document.getElementById('title').innerHTML = JSON.parse(JSON.stringify(data["descr"]));
+                        document.getElementById('sysname').innerHTML = JSON.parse(JSON.stringify(data["sysname"]));
+
+                        data_up(data);
+                    })
+                    .catch(error => console.log(error));
+            }
+
+            function update_auto(ip_val, port_val) {
+                var url = '/api/update_auto?' + $.param({ip: ip_val, port: port_val});
+                fetch(url, {
+                    method: 'GET',
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        data_up(data)
+                    })
+                    .catch(error => console.log(error));
+            }
+        });
     </script>
 </head>
 <body>
-    <h1>Switch Checker Online (ver.alpha=0.1)</h1>
-    <div>
-        <form name="update" method="get" action="api/update">
-            <p>
-                <a>IP:</a><input type=text name=ip value="192.168.111.29">
-                <a>port:</a><input type=text name=port value="3">
-            </p>
-            <p><input type=button value="Start" onclick="get_updates();"></p>
+    <div class="container">
+        <h2>Switch Checker Online</h2>
+        <h4>ver=0.1.3(alpha)</h4>
+
+        <form name="update" method="get" action="api/update" class="dropdown-menu-left p-4">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="input_ip">IP</label>
+                    <div class="form-group">
+                        <input id="input_ip" type=text value="192.168.111.29" placeholder="192.168.1.1" class="input_ip">
+                        <small id="ip_help" class="form-text text-muted">switch ip address</small>
+                        <div class="invalid-tooltip">Please check IP</div>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label for="input_port">Port</label>
+                    <div class="form-group">
+                        <input id="input_port" type=text value="3" placeholder="1" class="input_port">
+                        <small id="port_help" class="form-text text-muted">port number</small>
+                        <div class="invalid-tooltip">Please check port</div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row pt-3">
+                <input type=button value="Start" id="start_button" class="btn btn-outline-primary btn-lg">
+            </div>
         </form>
-        <p>Title: <a id="title"></a></p>
-        <p>Name: <a id="sysname"></a></p>
-        <p>Link status: <a id="status"></a></p>
-        <p>Speed: <a id="speed"></a></p>
-        <p>Addresses: <a id="addresses"></a></p>
-        <br>
+
+        <table class="table">
+            <tr>
+                <th>IP:port</th>
+                <td id="ip_port" colspan=2></td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td id="title" colspan=2></td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td id="sysname" colspan=2></td>
+            </tr>
+            <tr>
+                <th>Link status</th>
+                <td><img id="img_status" width=40 height=40></td>
+                <td id="status"></td>
+            </tr>
+            <tr>
+                <th>Speed</th>
+                <td id="speed" colspan=2></td>
+            </tr>
+            <tr>
+                <th>MAC</th>
+                <td id="addresses" colspan=2></td>
+            </tr>
+        </table>
     </div>
 
 </body>
