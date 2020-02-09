@@ -27,80 +27,110 @@ Welcome! Ver descriptions allocated here:
           crossorigin="anonymous">
     <script type="text/javascript" src="{{ url_for('static', filename='dtable.js') }}"></script>
 </head>
+<style>
+#cover {
+    background: #222 url('https://unsplash.it/1920/1080/?random') center center no-repeat;
+    background-size: cover;
+    height: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+#cover-caption {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* only used for background overlay not needed for centering */
+form:before {
+    content: '';
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background-color: rgba(0,0,0,0.6);
+    z-index: -1;
+    border-radius: 15px;
+}
+
+</style>
 <body>
-    <div class="container">
-        <div align="center">
-            <br><h2>Проверка статуса порта Онлайн</h2>
-            <h4>ver=0.1.3(alpha)</h4>
-        </div>
-
-        <form name="update" method="get" action="api/update" class="dropdown-menu-left p-4">
-            <div class="form-row" align="center">
-                <div class="form-group-sm">
-                    <label for="input_ip">IP</label>
-                    <div class="form-group">
-                        <input id="input_ip" type=text value="192.168.111.29" placeholder="192.168.1.1" class="form-control">
-                        <small id="ip_help" class="form-text text-muted">IP свича</small>
-                        <div class="invalid-tooltip">Проверьте IP</div>
-                    </div>
-                </div>
-                <div class="form-group-sm">
-                    <label for="input_port">Порт</label>
-                    <div class="form-group">
-                        <input id="input_port" type=text value="3" placeholder="1" class="form-control">
-                        <small id="port_help" class="form-text text-muted">Номер порта</small>
-                        <div class="invalid-tooltip">Проверте порт</div>
-                    </div>
-                </div>
-            </div>
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="update_every">Интервал обновления</label>
-                </div>
-                <select class="custom-select" id="update_every">
-                    <option selected>Выберите...</option>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                </select>
-                <div class="input-group-append">
-                    <span class="input-group-text">(сек.)</span>
-                </div>
-            </div>
-            <div class="align-center">
-                <input type=button value="Запуск" id="start_button" class="btn btn-outline-primary btn-lg">
-            </div>
-
-        </form>
-
-        <table class="table">
-            <tr>
-                <th>IP:порт</th>
-                <td id="ip_port" colspan=2></td>
-            </tr>
-            <tr>
-                <th>Устройство</th>
-                <td id="title" colspan=2></td>
-            </tr>
-            <tr>
-                <th>Имя</th>
-                <td id="sysname" colspan=2></td>
-            </tr>
-            <tr>
-                <th>Статус порта</th>
-                <td><img src="" alt="" id="img_status" width=40 height=40></td>
-                <td id="status"></td>
-            </tr>
-            <tr>
-                <th>Скорость порта</th>
-                <td id="speed" colspan=2></td>
-            </tr>
-            <tr>
-                <th>MAC</th>
-                <td id="addresses" colspan=2></td>
-            </tr>
-        </table>
-    </div>
-
+	<section id="cover" class="min-vh-100">
+		<div id="cover-caption">
+			<div class="container">
+				<div class="row text-white">
+					<div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-4">
+						<h1 class="display-4 py-2 text-truncate">Статус порта<br>Онлайн</h1>
+						<h6>ver=0.1.3(alpha)</h6>
+						<div class="form-group px-2">
+							<form name="update" method="get" action="api/update" class="justify-content-center">
+								<div class="form-row" align="center">
+									<div class="form-group col-sm">
+										<label class="sr-only" for="input_ip">IP</label>
+										<input id="input_ip" type=text value="192.168.111.29" placeholder="192.168.1.1" class="form-control">
+										<small id="ip_help" class="form-text">IP свича</small>
+										<div class="invalid-tooltip">Проверьте IP</div>
+									</div>
+									<div class="form-group col-sm">
+										<label class="sr-only" for="input_port">Порт</label>
+										<input id="input_port" type=text value="3" placeholder="1" class="form-control">
+										<small id="port_help" class="form-text">Номер порта</small>
+										<div class="invalid-tooltip">Проверте порт</div>
+									</div>
+								</div>
+								<div class="form-group input-group">
+									<div class="input-group-prepend">
+										<label class="input-group-text" for="update_every">Интервал обновления</label>
+									</div>
+									<select class="custom-select" id="update_every">
+										<option selected>Не обновлять</option>
+										<option value="3">3 сек</option>
+										<option value="5">5 сек</option>
+										<option value="10">10 сек</option>
+										<option value="60">1 мин</option>
+									</select>
+								</div>
+								
+								<input type=button value="Запуск" id="start_button" class="btn btn-outline-primary btn-lg">
+							</form>
+						</div>
+						<div>
+							<table class="table" id="update_table">
+								<tr>
+									<th>IP:порт</th>
+									<td id="ip_port" colspan=2></td>
+								</tr>
+								<tr>
+									<th>Устройство</th>
+									<td id="title" colspan=2></td>
+								</tr>
+								<tr>
+									<th>Имя</th>
+									<td id="sysname" colspan=2></td>
+								</tr>
+								<tr>
+									<th>Статус порта</th>
+									<td><img src="" alt="" id="img_status" width=40 height=40></td>
+									<td id="status"></td>
+								</tr>
+								<tr>
+									<th>Скорость порта</th>
+									<td id="speed" colspan=2></td>
+								</tr>
+								<tr>
+									<th>MAC</th>
+									<td id="addresses" colspan=2></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
 </body>
 </html>
