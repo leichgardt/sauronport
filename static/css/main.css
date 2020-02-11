@@ -1,5 +1,5 @@
 body {
-    background: #222 url("../wallpaper-3.jpg");
+    background: #222 url("../wallpaper-3.jpg") center top no-repeat;
     background-size: unset;
 }
 

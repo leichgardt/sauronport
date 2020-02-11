@@ -76,5 +76,5 @@ if not app.debug:
     print('logger activated')
 
 if __name__ == '__main__':
-    print("main case :: :: ::")
-    app.run(host='0.0.0.0', load_dotenv=True, debug=True)
+    # print("main case :: :: ::")
+    app.run(host='0.0.0.0')

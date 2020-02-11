@@ -5,6 +5,7 @@ $(document).ready(function() {
     var button = document.getElementById('start_button');
     var update_every = document.getElementById('update_every');
     var auto_updater;
+    var request_timer;
     var pic = new Image(50, 50);
 
     function validateIP(ip) {
@@ -41,15 +42,19 @@ $(document).ready(function() {
     button.onclick = function get_updates() {
         console.log('update!!!');
         clearInterval(auto_updater);
+        clearTimeout(request_timer);
+
         if (button.classList.contains("btn-outline-success")) {
             restore_button();
-        } else if (check_valid(ip_element.value, port_element.value)) {
+        } else
+        if (check_valid(ip_element.value, port_element.value)) {
             update_data(ip_element.value, port_element.value);
             if (isNumeric(update_every.value)) {
                 auto_updater = setInterval(update_auto, update_every.value * 1000, ip_element.value, port_element.value);
                 set_loading_button("Стоп");
             } else {
-                set_loading_button("Ждите...");
+                set_loading_button("Отмена");
+                request_timer = setTimeout(set_danger_button, 10000, true, 3000, "Timeout");
             }
         } else {
             set_danger_button(timeout=true);
@@ -66,6 +71,7 @@ $(document).ready(function() {
         button.value = btn_value;
         button.disabled = true;
         button.classList.remove("btn-outline-primary");
+        button.classList.remove("btn-outline-success");
         button.classList.add("btn-danger");
         if (timeout===true) {
             var timeout_button = setTimeout(restore_button, timer);
@@ -97,6 +103,7 @@ $(document).ready(function() {
                 document.getElementById('title').innerHTML = JSON.parse(JSON.stringify(data["descr"]));
                 document.getElementById('sysname').innerHTML = JSON.parse(JSON.stringify(data["sysname"]));
 
+                clearTimeout(request_timer);
                 fill_table(data);
             })
             .catch(error => {
@@ -106,7 +113,7 @@ $(document).ready(function() {
     }
 
     function fill_table(data) {
-        if (button.value === "Ждите...") restore_button();
+        if (button.value === "Отмена") restore_button();
         var today = new Date();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         var macs = JSON.parse(JSON.stringify(data["macs"]));
