@@ -12,6 +12,7 @@ Port Monitoring on Switch with Flask and pysnmp into WEB-app.
  - ~~Timeout handler for requests~~
  - More readable port status output
  - Errors on port
+ - js syntax error handler
  - Output data (addresses) from DB by `%switch_name` (`sw29`)
  - Rework the `dtable.js`
  - Improve HTML table
