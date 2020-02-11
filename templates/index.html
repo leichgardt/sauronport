@@ -1,10 +1,13 @@
 <!--
 Welcome! Ver descriptions allocated here:
 
-(alpha)
+(pre-alpha)
 0.1.1 - simple requests
 0.1.2 - improved updates, table output
 0.1.3 - bootstrap.js, dynamic update
+(alpha)
+0.1.4 - style, update cancel by button
+0.2.0 - auto error logging, widget for consumer alpha testing reports
 
 --->
 <!DOCTYPE html>
@@ -25,112 +28,164 @@ Welcome! Ver descriptions allocated here:
           href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
           crossorigin="anonymous">
+	<link rel="stylesheet"
+		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet"
+		  href="{{ url_for('static', filename='css/main.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename='dtable.js') }}"></script>
 </head>
-<style>
-#cover {
-    background: #222 url('https://unsplash.it/1920/1080/?random') center center no-repeat;
-    background-size: cover;
-    height: 100%;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
+<header>
+	<div class="container">
+		<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
+			<a class="navbar-brand" href="http://ironnet.info/">IronNet</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+					aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav mr-auto">
+<!--					<li class="nav-item active">-->
+<!--						<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
+<!--					</li>-->
+					<li class="nav-item">
+						<a class="nav-link" href="#" data-toggle="modal" data-target="#banner_report">Сообщить о проблеме</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#" data-toggle="modal" data-target="#banner_about">О приложении</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
 
-#cover-caption {
-    width: 100%;
-    position: relative;
-    z-index: 1;
-}
+	<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="banner_about" aria-hidden="true" id="banner_about">
+		<div class="modal-dialog modal-md">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">О приложении</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				</div>
+				<div class="modal-body text-justify">
+					Приложение "Статус порта Онлайн" (codename:<a href="https://github.com/mamaragan/FlaSNMP">FlaSNMP</a>) предназначено для мониторинга портов маршрутизаторов.
+					Разработчик приложения - Имигеев Евгений.
 
-/* only used for background overlay not needed for centering */
-form:before {
-    content: '';
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    background-color: rgba(0,0,0,0.6);
-    z-index: -1;
-    border-radius: 15px;
-}
-
-</style>
-<body>
-	<section id="cover" class="min-vh-100">
-		<div id="cover-caption">
-			<div class="container">
-				<div class="row text-white">
-					<div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-4">
-						<h1 class="display-4 py-2 text-truncate">Статус порта<br>Онлайн</h1>
-						<h6>ver=0.1.3(alpha)</h6>
-						<div class="form-group px-2">
-							<form name="update" method="get" action="api/update" class="justify-content-center">
-								<div class="form-row" align="center">
-									<div class="form-group col-sm">
-										<label class="sr-only" for="input_ip">IP</label>
-										<input id="input_ip" type=text value="192.168.111.29" placeholder="192.168.1.1" class="form-control">
-										<small id="ip_help" class="form-text">IP свича</small>
-										<div class="invalid-tooltip">Проверьте IP</div>
-									</div>
-									<div class="form-group col-sm">
-										<label class="sr-only" for="input_port">Порт</label>
-										<input id="input_port" type=text value="3" placeholder="1" class="form-control">
-										<small id="port_help" class="form-text">Номер порта</small>
-										<div class="invalid-tooltip">Проверте порт</div>
-									</div>
-								</div>
-								<div class="form-group input-group">
-									<div class="input-group-prepend">
-										<label class="input-group-text" for="update_every">Интервал обновления</label>
-									</div>
-									<select class="custom-select" id="update_every">
-										<option selected>Не обновлять</option>
-										<option value="3">3 сек</option>
-										<option value="5">5 сек</option>
-										<option value="10">10 сек</option>
-										<option value="60">1 мин</option>
-									</select>
-								</div>
-								
-								<input type=button value="Запуск" id="start_button" class="btn btn-outline-primary btn-lg">
-							</form>
-						</div>
-						<div>
-							<table class="table" id="update_table">
-								<tr>
-									<th>IP:порт</th>
-									<td id="ip_port" colspan=2></td>
-								</tr>
-								<tr>
-									<th>Устройство</th>
-									<td id="title" colspan=2></td>
-								</tr>
-								<tr>
-									<th>Имя</th>
-									<td id="sysname" colspan=2></td>
-								</tr>
-								<tr>
-									<th>Статус порта</th>
-									<td><img src="" alt="" id="img_status" width=40 height=40></td>
-									<td id="status"></td>
-								</tr>
-								<tr>
-									<th>Скорость порта</th>
-									<td id="speed" colspan=2></td>
-								</tr>
-								<tr>
-									<th>MAC</th>
-									<td id="addresses" colspan=2></td>
-								</tr>
-							</table>
-						</div>
+					<div style="text-align: center;">
+						<br>Северобайкальск, 2020.
 					</div>
 				</div>
 			</div>
 		</div>
-	</section>
+	</div>
+
+	<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="banner_report" aria-hidden="true" id="banner_report">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" >Сообщить о проблеме</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				</div>
+				<div class="modal-body text-justify">
+					Приложение находится на alpha-стадии разработки. Ошибки и баги исключительно возможны.
+					<br>Они записываются автоматически (наверное), однако тем не менее:
+					<ul>
+						<li>
+							О любых проблемах, а ТАКЖЕ о ваших рекомендациях (и о чем еще угодно), рекомендуется сообщать:
+							<ul>
+								<li>Telegram: <a href="http://t.me/mamaragan">@mamaragan</a></li>
+								<li>E-mail: <a href="mailto:imigeev.e@gmail.com">imigeev.e@gmail.com</a></li>
+							</ul>
+						</li>
+						<li>
+							При любом сбое попробуйте <u>перезагрузить страницу</u> и повторите действия заново.
+						</li>
+                        <li>
+                            Перезагрузка может не помогать, если:
+                            <ul>
+                                <li>Введен недоступный в сети IP-адрес или порт</li>
+                                <li>Для маршрутизатора не настроена программа</li>
+                                <li>Маршрутизатор не поддерживает протокол мониторинга</li>
+                            </ul>
+                        </li>
+					</ul>
+                    <br><u>Сообщайте о ЛЮБЫХ проблемах во всех красках и подробностях.</u>
+				</div>
+			</div>
+		</div>
+	</div>
+</header>
+<body>
+	<div id="cover-caption">
+		<div class="container">
+			<div class="row text-white">
+				<div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-2">
+					<h2 class="font-weight-light py-2 text-truncate">Статус порта<br>Онлайн</h2>
+                    <div class="text-muted">
+                        <h6 class="font-weight-light">ver 0.2.0 (alpha release)</h6>
+                        При любом сбое попробуйте <u>перезагрузить страницу</u> и повторите действия заново.
+                    </div>
+					<div class="form-group px-2">
+						<form name="update" method="get" action="api/update" class="justify-content-center">
+							<div class="form-row" >
+								<div class="form-group col-sm">
+									<label for="input_ip">IP</label>
+									<input id="input_ip" type=text value="192.168.111.29" placeholder="IP-адрес свича" class="form-control">
+									<div class="invalid-tooltip">Проверьте IP</div>
+								</div>
+								<div class="form-group col-sm">
+									<label for="input_port">Порт</label>
+									<input id="input_port" type=text value="3" placeholder="Номер порта" class="form-control">
+									<div class="invalid-tooltip">Проверте порт</div>
+								</div>
+							</div>
+							<div class="form-group input-group">
+								<div class="input-group-prepend">
+									<label class="input-group-text" for="update_every">Интервал обновления</label>
+								</div>
+								<select class="custom-select" id="update_every">
+									<option selected>Не обновлять</option>
+									<option value="3">3 сек</option>
+									<option value="5">5 сек</option>
+									<option value="10">10 сек</option>
+									<option value="60">1 мин</option>
+								</select>
+							</div>
+							<input type=button value="Запуск" id="start_button" class="btn btn-outline-primary btn-lg">
+						</form>
+					</div>
+				</div>
+				<div class="col-md-8 col-sm-12 mx-auto form p-2 collapse" id="table_form">
+					<form>
+						<table class="table" id="update_table">
+							<tr>
+								<th scope="row">IP:порт</th>
+								<td id="ip_port" colspan=2></td>
+							</tr>
+							<tr>
+								<th>Устройство</th>
+								<td id="title" colspan=2></td>
+							</tr>
+							<tr>
+								<th>Имя</th>
+								<td id="sysname" colspan=2></td>
+							</tr>
+							<tr id="status_row">
+								<th>Статус порта</th>
+<!--								<td><img src="" alt="" id="img_status" width=40 height=40></td>-->
+								<td id="status" сolspan=2></td>
+							</tr>
+							<tr>
+								<th>Скорость порта</th>
+								<td id="speed" colspan=2></td>
+							</tr>
+							<tr>
+								<th>MAC</th>
+								<td id="addresses" class="text-uppercase" colspan=2></td>
+							</tr>
+						</table>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
