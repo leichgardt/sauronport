@@ -33,7 +33,7 @@ Welcome! Ver descriptions allocated here:
 		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet"
 		  href="{{ url_for('static', filename='css/main.css') }}">
-    <script type="text/javascript" src="{{ url_for('static', filename='dtable.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>
 </head>
 <header>
 	<div class="container">
@@ -162,12 +162,12 @@ Welcome! Ver descriptions allocated here:
 								<td id="ip_port" colspan=2></td>
 							</tr>
 							<tr>
-								<th>Устройство</th>
-								<td id="title" colspan=2></td>
-							</tr>
-							<tr>
 								<th>Имя</th>
 								<td id="sysname" colspan=2></td>
+							</tr>
+							<tr>
+								<th>Локация</th>
+								<td id="syslocation" colspan=2></td>
 							</tr>
 							<tr id="status_row">
 								<th>Статус порта</th>

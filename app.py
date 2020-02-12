@@ -3,16 +3,18 @@ from snmp_update.ironpysnmp import *
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-# import sentry_sdk
-#
-# sentry_sdk.init("https://537ea3f5cb234b229a38792b15809a0f@sentry.io/2403315")
+
 app = Flask(__name__)
-# app.debug = False
 
 
 @app.route('/')
 def index(name=None):
     return render_template('index.html', name=name)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
 
 @app.route('/api/update', methods=['GET'])
@@ -24,15 +26,16 @@ def post_request():
             if len(ip) == 0 and len(port) == 0:
                 return 'Invalid arguments', 400
             else:
-                descr, sysname, status, speed, vlans, macs = snmp_get_all_data(ip, port)
+                descr, sysname, syslocation, status, speed, vlans, macs = snmp_get_all_data(ip, port)
 
                 return {
                     "sysname": sysname,
+                    "syslocation": syslocation,
                     "descr": descr,
                     "status": status,
                     "speed": speed,
                     "vlans": vlans,
-                    "macs": macs
+                    "macs": macs,
                 }
     except Exception as e:
         print('post_request exception:', e)
@@ -57,10 +60,6 @@ def auto_request():
         print('auto_request exception:', e)
 
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
-
 
 if not app.debug:
     if not os.path.exists('logs'):
@@ -76,5 +75,4 @@ if not app.debug:
     print('logger activated')
 
 if __name__ == '__main__':
-    # print("main case :: :: ::")
     app.run(host='0.0.0.0')

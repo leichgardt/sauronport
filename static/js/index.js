@@ -6,7 +6,6 @@ $(document).ready(function() {
     var update_every = document.getElementById('update_every');
     var auto_updater;
     var request_timer;
-    var pic = new Image(50, 50);
 
     function validateIP(ip) {
         return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)
@@ -100,7 +99,8 @@ $(document).ready(function() {
                 console.log(data);
                 document.getElementById('table_form').classList.remove('collapse');
                 document.getElementById('ip_port').innerHTML = ip_val + ":" + port_val + " <a target=_blank href=\'http://" + ip_val + "/\'><i class=\'fa fa-external-link\'></i></a>";
-                document.getElementById('title').innerHTML = JSON.parse(JSON.stringify(data["descr"]));
+                // document.getElementById('title').innerHTML = JSON.parse(JSON.stringify(data["descr"]));
+                document.getElementById('syslocation').innerHTML = JSON.parse(JSON.stringify(data["syslocation"]));
                 document.getElementById('sysname').innerHTML = JSON.parse(JSON.stringify(data["sysname"]));
 
                 clearTimeout(request_timer);
@@ -122,7 +122,7 @@ $(document).ready(function() {
         document.getElementById('status_row').classList.add("text-warning");
         var timeout_status = setTimeout(restore_row, 500, 'status_row', 'text-warning');
 
-        document.getElementById('status').innerHTML = "(<i class='fa fa-clock-o'></i> " + time + ") — " + JSON.parse(JSON.stringify(data["status"]));
+        document.getElementById('status').innerHTML = "<i class='fa fa-clock-o'></i> " + time + " — " + JSON.parse(JSON.stringify(data["status"]));
         document.getElementById('speed').innerHTML = JSON.parse(JSON.stringify(data["speed"]));
         document.getElementById('addresses').innerHTML = '';
         for (let i = 0; i < macs.length; i++) {
