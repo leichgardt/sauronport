@@ -1,10 +1,11 @@
 from flask import Flask, request, render_template, send_from_directory
-from snmp_update.ironpysnmp import *
-import logging
+from snmp_update.ironpysnmp_class import IronSNMP
+from logging import Formatter, INFO
 from logging.handlers import RotatingFileHandler
 import os
 
 app = Flask(__name__)
+snmp = IronSNMP()
 
 
 @app.route('/')
@@ -26,16 +27,18 @@ def post_request():
             if len(ip) == 0 and len(port) == 0:
                 return 'Invalid arguments', 400
             else:
-                descr, sysname, syslocation, status, speed, vlans, macs = snmp_get_all_data(ip, port)
+                sysname, syslocation, sysuptime, status, speed, rx, tx, vlans, macs = snmp.get_all_data(ip, port)
 
                 return {
-                    "sysname": sysname,
-                    "syslocation": syslocation,
-                    "descr": descr,
+                    "sysName": sysname,
+                    "sysLocation": syslocation,
+                    "sysUpTime": sysuptime,
                     "status": status,
                     "speed": speed,
-                    "vlans": vlans,
-                    "macs": macs,
+                    "rxFrames": rx,
+                    "txFrames": tx,
+                    "vLan": vlans,
+                    "mac": macs,
                 }
     except Exception as e:
         print('post_request exception:', e)
@@ -48,29 +51,28 @@ def auto_request():
             ip = request.args.get('ip', '')
             port = request.args.get('port', '')
 
-            status, speed, vlans, macs = snmp_get_update(ip, port)
+            status, speed, vlans, macs = snmp.get_update(ip, port)
 
             return {
                 "status": status,
                 "speed": speed,
-                "vlans": vlans,
-                "macs": macs
+                "vLan": vlans,
+                "mac": macs
             }
     except Exception as e:
         print('auto_request exception:', e)
-
 
 
 if not app.debug:
     if not os.path.exists('logs'):
         os.mkdir('logs')
     file_handler = RotatingFileHandler('logs/errors.log', maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter(
+    file_handler.setFormatter(Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d'))
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(INFO)
     app.logger.addHandler(file_handler)
 
-    app.logger.setLevel(logging.INFO)
+    app.logger.setLevel(INFO)
     app.logger.info('FlaSNMP')
     print('logger activated')
 

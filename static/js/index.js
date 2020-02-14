@@ -99,9 +99,27 @@ $(document).ready(function() {
                 console.log(data);
                 document.getElementById('table_form').classList.remove('collapse');
                 document.getElementById('ip_port').innerHTML = ip_val + ":" + port_val + " <a target=_blank href=\'http://" + ip_val + "/\'><i class=\'fa fa-external-link\'></i></a>";
-                // document.getElementById('title').innerHTML = JSON.parse(JSON.stringify(data["descr"]));
-                document.getElementById('syslocation').innerHTML = JSON.parse(JSON.stringify(data["syslocation"]));
-                document.getElementById('sysname').innerHTML = JSON.parse(JSON.stringify(data["sysname"]));
+                document.getElementById('sysname').innerHTML = JSON.parse(JSON.stringify(data["sysName"]));
+                document.getElementById('syslocation').innerHTML = JSON.parse(JSON.stringify(data["sysLocation"]));
+                document.getElementById('sysuptime').innerHTML = JSON.parse(JSON.stringify(data["sysUpTime"]));
+                // document.getElementById('errors1').innerHTML = JSON.parse(JSON.stringify(data["rxFrames"].values()));
+                // document.getElementById('errors3').innerHTML = JSON.parse(JSON.stringify(data["txFrames"].values()));
+
+                document.getElementById('errors1').innerHTML = '';
+                document.getElementById('errors2').innerHTML = '';
+                document.getElementById('errors3').innerHTML = '';
+                document.getElementById('errors4').innerHTML = '';
+
+                Object.keys(data['rxFrames']).forEach(function (key) {
+                    if (data['rxFrames'][key] === -1) return;
+                    document.getElementById('errors1').innerHTML += key + "<br>";
+                    document.getElementById('errors2').innerHTML += data['rxFrames'][key] + "<br>";
+                });
+                Object.keys(data['txFrames']).forEach(function (key) {
+                    if (data['txFrames'][key] === -1) return;
+                    document.getElementById('errors3').innerHTML += key + "<br>";
+                    document.getElementById('errors4').innerHTML += data['txFrames'][key] + "<br>";
+                });
 
                 clearTimeout(request_timer);
                 fill_table(data);
@@ -109,6 +127,7 @@ $(document).ready(function() {
             .catch(error => {
                 console.log(error);
                 set_danger_button(true,2000);
+                clearInterval(auto_updater);
             });
     }
 
@@ -116,8 +135,8 @@ $(document).ready(function() {
         if (button.value === "Отмена") restore_button();
         var today = new Date();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        var macs = JSON.parse(JSON.stringify(data["macs"]));
-        var vlans = JSON.parse(JSON.stringify(data["vlans"]));
+        var macs = JSON.parse(JSON.stringify(data["mac"]));
+        var vlans = JSON.parse(JSON.stringify(data["vLan"]));
 
         document.getElementById('status_row').classList.add("text-warning");
         var timeout_status = setTimeout(restore_row, 500, 'status_row', 'text-warning');

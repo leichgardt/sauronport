@@ -24,6 +24,10 @@ form:before {
     border-radius: 5px;
 }
 
+table table.table-sm {
+    background: rgba(0,0,0,0);
+}
+
 #status_row {
     transition: all 0.6s;
 }

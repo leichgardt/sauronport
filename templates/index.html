@@ -86,12 +86,17 @@ Welcome! Ver descriptions allocated here:
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				</div>
 				<div class="modal-body text-justify">
-					Приложение находится на alpha-стадии разработки. Ошибки и баги исключительно возможны.
+                    Вы используете ЭКСПЕРИМЕНТАЛЬНУЮ систему мониторинга портов свичей.
+                    <br>При любом сбое попробуйте заново нажать на кнопку "Запуск".
+                    <br>Если ошибки повторяются, тогда перезагрузите страницу (Ctrl+F5) и повторите действия заново.
+
+					<br><br>Приложение находится на alpha-стадии разработки. Ошибки и баги исключительно возможны.
 					<br>Они записываются автоматически (наверное), однако тем не менее:
 					<ul>
 						<li>
 							О любых проблемах, а ТАКЖЕ о ваших рекомендациях (и о чем еще угодно), рекомендуется сообщать:
 							<ul>
+                                <li>Лично мне (на 2 этаже)</li>
 								<li>Telegram: <a href="http://t.me/mamaragan">@mamaragan</a></li>
 								<li>E-mail: <a href="mailto:imigeev.e@gmail.com">imigeev.e@gmail.com</a></li>
 							</ul>
@@ -103,8 +108,8 @@ Welcome! Ver descriptions allocated here:
                             Перезагрузка может не помогать, если:
                             <ul>
                                 <li>Введен недоступный в сети IP-адрес или порт</li>
-                                <li>Для коммутатора не настроена программа</li>
-                                <li>Коммутатор не поддерживает протокол мониторинга</li>
+                                <li>Для текущего коммутатора (по заданному IP) эта программа не настроена</li>
+                                <li>Коммутатор не поддерживает протокол мониторинга (поэтому мониторить его здесь не получится)</li>
                             </ul>
                         </li>
 					</ul>
@@ -119,11 +124,15 @@ Welcome! Ver descriptions allocated here:
 		<div class="container">
 			<div class="row text-white">
 				<div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-2">
-					<h2 class="font-weight-light py-2 text-truncate">Статус порта<br>Онлайн</h2>
-                    <div class="text-muted">
-                        <h6 class="font-weight-light">ver 0.2.0 (alpha release)</h6>
-                        При любом сбое попробуйте <u>перезагрузить страницу</u> и повторите действия заново (Ctrl+F5).
-                    </div>
+					<h2 class="font-weight-light py-2 text-truncate">
+                        Статус порта<br>Онлайн
+                    </h2>
+                    <h6 class="font-weight-light text-muted">ver 0.2.0 (alpha release)</h6>
+                    <script type="JavaScript">
+                        alert("Вы используете ЭКСПЕРИМЕНТАЛЬНУЮ систему мониторинга портов свичей.\n\n" +
+                            "При любом сбое попробуйте заново нажать на кнопку \"Запуск\".\n\n" +
+                            "Если ошибки повторяются, тогда перезагрузите страницу (Ctrl+F5) и повторите действия заново.")
+                    </script>
 					<div class="form-group px-2">
 						<form name="update" method="get" action="api/update" class="justify-content-center">
 							<div class="form-row" >
@@ -169,6 +178,10 @@ Welcome! Ver descriptions allocated here:
 								<th>Локация</th>
 								<td id="syslocation" colspan=2></td>
 							</tr>
+                            <tr>
+								<th>Аптайм</th>
+								<td id="sysuptime" colspan=2></td>
+							</tr>
 							<tr id="status_row">
 								<th>Статус порта</th>
 <!--								<td><img src="" alt="" id="img_status" width=40 height=40></td>-->
@@ -177,6 +190,25 @@ Welcome! Ver descriptions allocated here:
 							<tr>
 								<th>Скорость порта</th>
 								<td id="speed" colspan=2></td>
+							</tr>
+                            <tr>
+								<th>Ошибки порта</th>
+                                <td colspan=2>
+                                    <table class="table-sm table-dark">
+                                        <tr style="text-align: right">
+                                            <td></td>
+                                            <td>RX Frames</td>
+                                            <td></td>
+                                            <td>TX Frames</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align: right" id="errors1"></td>
+                                            <td id="errors2"></td>
+                                            <td style="text-align: right" id="errors3"></td>
+                                            <td id="errors4"></td>
+                                        </tr>
+                                    </table>
+                                </td>
 							</tr>
 							<tr>
 								<th>MAC</th>
