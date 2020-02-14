@@ -2,223 +2,237 @@
 Welcome! Ver descriptions allocated here:
 
 (pre-alpha)
-0.1.1 - simple requests
-0.1.2 - improved updates, table output
-0.1.3 - bootstrap.js, dynamic update
+0.0.1 - simple requests
 (alpha)
-0.1.4 - style, update cancel by button
+0.1.0 - improved updates, table output
+0.1.1 - bootstrap.js, dynamic update
+0.1.2 - style, update cancel by button
+(update)
 0.2.0 - auto error logging, widget for consumer alpha testing reports
-0.2.1 - add request timeout handler
+0.2.1 - added request timeout handler
+0.2.2 - added sysLocation, sysUpTime, port errors
+(beta)
+0.3.0 - parallelization achieved
+0.3.1 - one more errors... (snmp)
+0.3.2 - logs (pexpect)
+0.3.3 - better timeout handler
+0.3.4 - RSA encryption
+0.3.5 - RMON activator for port errors pulling
+0.3.6 - template structure, hidden scrollbar
+    a - saving configuration after enabling RMON
+(update)
+0.4.0 - PySNMP enabling/disabling ports
+    a - inclusion of reload port modal
+    b - code restructure and optimization
 
 --->
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Port Monitoring</title>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-          crossorigin="anonymous">
-	<link rel="stylesheet"
-		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet"
-		  href="{{ url_for('static', filename='css/main.css') }}">
-    <script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>
-</head>
-<header>
-	<div class="container">
-		<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
-			<a class="navbar-brand" href="http://ironnet.info/">IronNet</a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-					aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<ul class="navbar-nav mr-auto">
-<!--					<li class="nav-item active">-->
-<!--						<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
-<!--					</li>-->
-					<li class="nav-item">
-						<a class="nav-link" href="#" data-toggle="modal" data-target="#banner_report">Сообщить о проблеме</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#" data-toggle="modal" data-target="#banner_about">О приложении</a>
-					</li>
-				</ul>
-			</div>
-		</nav>
-	</div>
-
-	<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="banner_about" aria-hidden="true" id="banner_about">
-		<div class="modal-dialog modal-md">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">О приложении</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				</div>
-				<div class="modal-body text-justify">
-					Приложение "Статус порта Онлайн" (codename:<a href="https://github.com/mamaragan/FlaSNMP">FlaSNMP</a>) предназначено для мониторинга портов коммутаторов.
-					Разработчик приложения - Имигеев Евгений.
-
-					<div style="text-align: center;">
-						<br>Северобайкальск, 2020.
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="banner_report" aria-hidden="true" id="banner_report">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" >Сообщить о проблеме</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				</div>
-				<div class="modal-body text-justify">
-                    Вы используете ЭКСПЕРИМЕНТАЛЬНУЮ систему мониторинга портов свичей.
-                    <br>При любом сбое попробуйте заново нажать на кнопку "Запуск".
-                    <br>Если ошибки повторяются, тогда перезагрузите страницу (Ctrl+F5) и повторите действия заново.
-
-					<br><br>Приложение находится на alpha-стадии разработки. Ошибки и баги исключительно возможны.
-					<br>Они записываются автоматически (наверное), однако тем не менее:
-					<ul>
-						<li>
-							О любых проблемах, а ТАКЖЕ о ваших рекомендациях (и о чем еще угодно), рекомендуется сообщать:
-							<ul>
-                                <li>Лично мне (на 2 этаже)</li>
-								<li>Telegram: <a href="http://t.me/mamaragan">@mamaragan</a></li>
-								<li>E-mail: <a href="mailto:imigeev.e@gmail.com">imigeev.e@gmail.com</a></li>
-							</ul>
-						</li>
-						<li>
-							При любом сбое попробуйте <u>перезагрузить страницу</u> и повторите действия заново.
-						</li>
-                        <li>
-                            Перезагрузка может не помогать, если:
-                            <ul>
-                                <li>Введен недоступный в сети IP-адрес или порт</li>
-                                <li>Для текущего коммутатора (по заданному IP) эта программа не настроена</li>
-                                <li>Коммутатор не поддерживает протокол мониторинга (поэтому мониторить его здесь не получится)</li>
-                            </ul>
-                        </li>
-					</ul>
-                    <br><u>Сообщайте о ЛЮБЫХ проблемах во всех красках и подробностях.</u>
-				</div>
-			</div>
-		</div>
-	</div>
-</header>
-<body>
-	<div id="cover-caption">
-		<div class="container">
-			<div class="row text-white">
-				<div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto text-center form p-2">
-					<h2 class="font-weight-light py-2 text-truncate">
-                        Статус порта<br>Онлайн
-                    </h2>
-                    <h6 class="font-weight-light text-muted">ver 0.2.0 (alpha release)</h6>
-                    <script type="JavaScript">
-                        alert("Вы используете ЭКСПЕРИМЕНТАЛЬНУЮ систему мониторинга портов свичей.\n\n" +
-                            "При любом сбое попробуйте заново нажать на кнопку \"Запуск\".\n\n" +
-                            "Если ошибки повторяются, тогда перезагрузите страницу (Ctrl+F5) и повторите действия заново.")
-                    </script>
-					<div class="form-group px-2">
-						<form name="update" method="get" action="api/update" class="justify-content-center">
-							<div class="form-row" >
-								<div class="form-group col-sm">
-									<label for="input_ip">IP</label>
-									<input id="input_ip" type=text value="192.168.111.29" placeholder="IP-адрес свича" class="form-control">
-									<div class="invalid-tooltip">Проверьте IP</div>
-								</div>
-								<div class="form-group col-sm">
-									<label for="input_port">Порт</label>
-									<input id="input_port" type=text value="3" placeholder="Номер порта" class="form-control">
-									<div class="invalid-tooltip">Проверте порт</div>
-								</div>
-							</div>
-							<div class="form-group input-group">
-								<div class="input-group-prepend">
-									<label class="input-group-text" for="update_every">Интервал обновления</label>
-								</div>
-								<select class="custom-select" id="update_every">
-									<option selected>Не обновлять</option>
-									<option value="3">3 сек</option>
-									<option value="5">5 сек</option>
-									<option value="10">10 сек</option>
-									<option value="60">1 мин</option>
-								</select>
-							</div>
-							<input type=button value="Запуск" id="start_button" class="btn btn-outline-primary btn-lg">
-						</form>
-					</div>
-				</div>
-				<div class="col-md-8 col-sm-12 mx-auto form p-2 collapse" id="table_form">
-					<form>
-						<table class="table" id="update_table">
-							<tr>
-								<th scope="row">IP:порт</th>
-								<td id="ip_port" colspan=2></td>
-							</tr>
-							<tr>
-								<th>Имя</th>
-								<td id="sysname" colspan=2></td>
-							</tr>
-							<tr>
-								<th>Локация</th>
-								<td id="syslocation" colspan=2></td>
-							</tr>
-                            <tr>
-								<th>Аптайм</th>
-								<td id="sysuptime" colspan=2></td>
-							</tr>
-							<tr id="status_row">
-								<th>Статус порта</th>
-<!--								<td><img src="" alt="" id="img_status" width=40 height=40></td>-->
-								<td id="status" сolspan=2></td>
-							</tr>
-							<tr>
-								<th>Скорость порта</th>
-								<td id="speed" colspan=2></td>
-							</tr>
-                            <tr>
-								<th>Ошибки порта</th>
-                                <td colspan=2>
-                                    <table class="table-sm table-dark">
-                                        <tr style="text-align: right">
-                                            <td></td>
-                                            <td>RX Frames</td>
-                                            <td></td>
-                                            <td>TX Frames</td>
+{% extends "base.html" %}
+{% block content %}
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ошибки порта</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-justify">
+                Если половина значений ошибок недоступна ("n/a" - not available) - выполните функцию "Включить RMON".<br/>
+                Для этого нажмите:
+                <ul>
+                    <li>
+                        Стрелочка вниз кнопки "Логи"
+                    </li>
+                    <li>
+                        Кнопка "Включить RMON"
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="reload-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="reload-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reload-modal-label"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-justify" id="reload-modal-body"></div>
+        </div>
+    </div>
+</div>
+<div id="cover-caption">
+    <div class="container">
+        <div class="row text-white">
+            <div class="col-xl-7 col-lg-8 col-md-10 col-sm-12 mx-auto text-center form p-2">
+                <div class="px-2">
+                    <form name="update" method="get" class="justify-content-center">
+                        <h5>Мониторинг порта</h5>
+                        <div class="form-row">
+                            <div class="col-4">IP</div>
+                            <div class="col-2">Порт</div>
+                            <div class="col-3">Автообнов.</div>
+                            <div class="col-3"></div>
+                            <div class="form-group col-4">
+                                <label class="sr-only" for="input-ip">IP</label>
+                                    <input id="input-ip" type=text value="192.168.110.87" placeholder="IP-адрес свича" class="form-control">
+                                <div class="invalid-tooltip">Проверьте IP</div>
+                            </div>
+                            <div class="form-group col-2">
+                                <label class="sr-only" for="input-port">Порт</label>
+                                    <input id="input-port" type=text value="3" placeholder="Номер порта" class="form-control">
+                                <div class="invalid-tooltip">Проверте порт</div>
+                            </div>
+                            <div class="form-group col-3">
+                                <label class="sr-only" for="update-every">Обновление</label>
+                                <select class="custom-select" id="update-every">
+                                    <option selected>Не обновл.</option>
+                                    <option value="3">3 сек</option>
+                                    <option value="5">5 сек</option>
+                                    <option value="10">10 сек</option>
+                                    <option value="60">1 мин</option>
+                                </select>
+                            </div>
+                            <div class="form-group btn-group col-3">
+                                <button type="button" id="start-button" class="btn btn-outline-primary w-100">
+                                    <span class="spinner-border spinner-border-sm m-1 collapse" id="button-spinner" role="status"></span>
+                                    <span class="collapse show" id="button-value">Запуск</span>
+                                </button>
+                                <div class="btn-group" role="group">
+                                    <button id="btnGroupDrop1" type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btnGroupDrop1">
+                                        <h6 class="dropdown-header">Управление портами</h6>
+                                        <button type="button" id="enable-port-button" class="dropdown-item">Перезапустить порт</button>
+                                        <button type="button" id="disable-port-button" class="dropdown-item">Выключить порт</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h5>Логи коммутатора</h5>
+                        <div class="form-row">
+                            <div class="col-3">Логин</div>
+                            <div class="col-3">Пароль</div>
+                            <div class="col-3">Кол-во стр.</div>
+                            <div class="col-3"></div>
+                            <div class="form-group col-3">
+                                <label class="sr-only" for="input-login">Логин</label>
+                                <input id="input-login" type=text value="admin" placeholder="Логин" class="form-control">
+                                <div class="invalid-tooltip">Проверьте логин</div>
+                            </div>
+                            <div class="form-group col-3">
+                                <label class="sr-only" for="input-password">Пароль</label>
+                                <input id="input-password" type=password value="" placeholder="Пароль" class="form-control">
+                            </div>
+                            <div class="form-group col-3">
+                                <label class="sr-only" for="input-pages">Кол-во стр.</label>
+                                <input id="input-pages" type=number value="1" placeholder="Кол-во стр." class="form-control">
+                            </div>
+                            <div class="form-group btn-group col-3" role="group">
+                                <button type="button" id="logs-button" class="btn btn-outline-primary w-100">
+                                    <span class="spinner-border spinner-border-sm m-1 collapse" id="logs-button-spinner" role="status"></span>
+                                    <span class="collapse show" id="logs-button-value">Логи</span>
+                                </button>
+                                <div class="btn-group" role="group">
+                                    <button id="btnGroupDrop2" type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btnGroupDrop2">
+                                        <h6 class="dropdown-header">Управление коммутатором</h6>
+                                        <button type="button" id="enable-rmon-button" class="dropdown-item" >Включить RMON</button>
+{#                                        <a class="dropdown-item" href="#">Dropdown link</a>#}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-xl-7 col-lg-9 col-md-11 col-sm-12 mx-auto form p-2 collapse" id="table-form">
+                <form method=post>
+                    <table class="table" id="update-table" style="color: whitesmoke">
+                        <tr class="collapse" name="sys-table">
+                            <th scope="row">IP:порт</th>
+                            <td id="ip-port"></td>
+                            <th>Аптайм</th>
+                            <td id="sysuptime"></td>
+                        </tr>
+                        <tr class="collapse" name="sys-table">
+                            <th>Имя</th>
+                            <td id="sysname"></td>
+                            <th>Локация</th>
+                            <td id="syslocation"></td>
+                        </tr>
+                        <tr class="collapse" name="port-table" id="status-row">
+                            <th>Статус порта</th>
+                            <td id="status"></td>
+                            <th>Соединение</th>
+                            <td id="link"></td>
+                        </tr>
+                        <tr class="collapse" name="port-table">
+                            <th>
+                                <a data-toggle="collapse" href="#collapseAddress" role="button" aria-expanded="false">Адреса порта</a>
+                            </th>
+                            <td class="text-uppercase" colspan=3>
+                                <div class="w-100 collapse show" id="collapseAddress">
+                                    <table width="100%" class="table-sm table-dark collapse show">
+                                        <tr>
+                                            <td>MAC</td>
+                                            <td>vLAN</td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align: right" id="errors1"></td>
-                                            <td id="errors2"></td>
-                                            <td style="text-align: right" id="errors3"></td>
-                                            <td id="errors4"></td>
+                                            <td id="mac" nowrap></td>
+                                            <td id="vlan" nowrap></td>
                                         </tr>
                                     </table>
-                                </td>
-							</tr>
-							<tr>
-								<th>MAC</th>
-								<td id="addresses" class="text-uppercase" colspan=2></td>
-							</tr>
-						</table>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-</body>
-</html>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="collapse" name="errors-table">
+                            <td colspan=4>
+                                <div class="font-weight-bold p-2">
+                                    <div class="text-center">
+                                        <a data-toggle="collapse" href="#collapseError" role="button" aria-expanded="true" aria-controls="collapseError">Ошибки порта</a>
+                                        <div style="float: right">
+                                            <a href="#exampleModal" role="button" data-toggle="modal" data-target="#exampleModal">
+                                                <i class="fa fa-question-circle"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="collapseError" class="collapse show">
+                                    <table width="100%" class="table-sm table-dark">
+                                        <tbody id="errors">
+                                        <tr style="text-align: center">
+                                            <td colspan=2 style="text-align: center">RX Frames</td>
+                                            <td colspan=4 style="text-align: center">TX Frames</td>
+                                        </tr>
+                                        <tr>
+                                            <td nowrap style="text-align: right" id="errors1"></td>
+                                            <td id="errors2"></td>
+                                            <td nowrap style="text-align: right" id="errors3"></td>
+                                            <td id="errors4"></td>
+                                            <td colspan=2></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="collapse" name="logs-table">
+                            <td colspan=4>
+                                <div class="w-100 text-center font-weight-bold p-2">
+                                    <a data-toggle="collapse" href="#logs" role="button" aria-expanded="true" aria-controls="logs">Логи</a>
+                                </div>
+                                <div id="logs" class="text-left collapse show"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="reload-modal-button" type="button" class="sr-only" data-toggle="modal" data-target="#reload-modal"></button>
+{% endblock %}

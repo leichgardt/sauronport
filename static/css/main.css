@@ -1,8 +1,14 @@
-body {
-    background: #222 url("../images/wallpaper-3.jpg") center top no-repeat;
-    background-size: unset;
+html {
+    background: #222 url("../background/wallpaper-3.jpg") center center no-repeat fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    -ms-overflow-style: none;
 }
-
+::-webkit-scrollbar {
+    display: none;
+}
 #cover-caption {
     display: flex;
     align-items: center;
@@ -11,7 +17,9 @@ body {
     position: relative;
     z-index: 1;
 }
-
+h2 span {
+    font-size: 18px;
+}
 form:before {
     content: '';
     height: 100%;
@@ -19,15 +27,19 @@ form:before {
     position: absolute;
     top: 0;
     width: 100%;
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0,0,0,0.8);
     z-index: -1;
     border-radius: 5px;
 }
-
 table table.table-sm {
     background: rgba(0,0,0,0);
 }
-
 #status_row {
     transition: all 0.6s;
+}
+#logs {
+    white-space: pre-wrap;
+    font-family: Consolas, monaco, monospace;
+    font-size: 13px;
+    width: 101%;
 }
