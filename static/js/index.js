@@ -14,7 +14,10 @@ $(document).ready(function() {
     let logs_button = document.getElementById('logs-button'),
         logs_button_value = document.getElementById('logs-button-value'),
         logs_button_spinner = document.getElementById('logs-button-spinner');
-    let enable_rmon_button = document.getElementById('enable-rmon-button');
+    let enable_rmon_button = document.getElementById('enable-rmon-button'),
+        modal_logs_button = document.getElementById('modal-logs-button'),
+        login_button = document.getElementById('login-button'),
+        close_login_modal_button = document.getElementById('close-login-modal-button');
 
     let update_every = document.getElementById('update-every'),
         auto_updater, request_timer,
@@ -77,7 +80,7 @@ $(document).ready(function() {
             if (bButton === 'start')
                 setTimeout(button_status, 1500, 'default', 'start');
             else if (bButton === 'logs')
-                setTimeout(button_status, 1500, 'default', 'logs', 'Логи');
+                setTimeout(button_status, 1500, 'default', 'logs', 'Выгрузить логи');
             loading_queue = 0;
         }
     }
@@ -161,7 +164,7 @@ $(document).ready(function() {
     };
 
     function reload_port(ip_val, port_val, mode) {
-        let url = '/api/reload_port?' + $.param({ip: ip_val, port: port_val, mode: mode});
+        let url = 'api/reload_port?' + $.param({ip: ip_val, port: port_val, mode: mode});
         fetch(url, {
             method: 'GET',
         })
@@ -187,7 +190,7 @@ $(document).ready(function() {
     }
 
     function update_data_sys(ip_val, port_val) {
-        let url = '/api/update_sys?' + $.param({ip: ip_val});
+        let url = 'api/update_sys?' + $.param({ip: ip_val});
         fetch(url, {
             method: 'GET',
         })
@@ -226,7 +229,7 @@ $(document).ready(function() {
     }
 
     function update_data_port(ip_val, port_val) {
-        let url = '/api/update_port?' + $.param({ip: ip_val, port: port_val});
+        let url = 'api/update_port?' + $.param({ip: ip_val, port: port_val});
         fetch(url, {
             method: 'GET',
         })
@@ -283,7 +286,7 @@ $(document).ready(function() {
     }
 
     function update_port_errors(ip_val, port_val) {
-        let url = '/api/update_err?' + $.param({ip: ip_val, port: port_val});
+        let url = 'api/update_err?' + $.param({ip: ip_val, port: port_val});
         fetch(url, {
             method: 'GET',
         })
@@ -349,16 +352,22 @@ $(document).ready(function() {
 
     logs_button.onclick = function get_logs() {
         console.log("Logs button clicked");
+        button_status('loading', 'logs');
+        update_logs(ip_element.value, '', '', pages_element.value);
+        // update_logs(ip_element.value, login_element.value, password_element.value, pages_element.value);
+    };
+
+    modal_logs_button.onclick = function get_auth_logs() {
         if (auth_valid()) {
+            console.log("Authorization and log pulling");
             button_status('loading', 'logs');
             update_logs(ip_element.value, login_element.value, password_element.value, pages_element.value);
-            // update_public_key_and_encrypt(password_element.value);
-        }
-        else  {
+        } else {
             button_status('error', 'logs');
             login_element.classList.add('is-invalid');
         }
-    };
+        close_login_modal_button.click();
+    }
 
     login_element.oninput = function (event) {
         if (login_element.value !== '') {
@@ -370,16 +379,16 @@ $(document).ready(function() {
         }
     };
 
-    // 'Enter' handler
+    // Enter-key handler
     login_element.onkeyup = function (event) {
         if (event.which === 13 || event.keyCode === 13) {
-            logs_button.click();
+            modal_logs_button.click();
         }
     };
 
     password_element.onkeyup = function (event) {
         if (event.which === 13 || event.keyCode === 13) {
-            logs_button.click();
+            modal_logs_button.click();
         }
     };
 
@@ -390,7 +399,7 @@ $(document).ready(function() {
     };
 
     function update_logs(ip_val, login_val, password_val, pages_val) {
-        let url = '/api/update_log';
+        let url = 'api/update_log';
         let data = {'ip': ip_val, 'login': login_val, 'password': password_val, 'pages': pages_val};
         fetch(url, {
             method: 'POST',
@@ -402,11 +411,11 @@ $(document).ready(function() {
                 console.log("Got logs");
                 if (data["logs"] === null) {
                     button_status("error", "logs", "Ошибка");
+                    login_button.click();
                 } else {
-                    button_status("default", "logs", "Логи");
+                    button_status("default", "logs", "Выгрузить логи");
                     data["logs"] = data["logs"].replace(/--More--/, '');
                     data["logs"] = data["logs"].replace(new RegExp('\b', 'g'), '');
-                    // data["logs"] = data["logs"].replace(new RegExp('\b', 'g'), '');
                     document.getElementsByName('logs-table').forEach(function (element) {
                         element.classList.add('show');
                     });
@@ -417,6 +426,7 @@ $(document).ready(function() {
             .catch(error => {
                 console.log("[update_logs]", error);
                 button_status("error", "logs");
+                login_button.click();
             });
     }
 
@@ -432,7 +442,7 @@ $(document).ready(function() {
     };
 
     function update_enable_rmon(ip_val, login_val, password_val) {
-        let url = '/api/enable_rmon';
+        let url = 'api/enable_rmon';
         let data = {'ip': ip_val, 'login': login_val, 'password': password_val};
         fetch(url, {
             method: 'POST',

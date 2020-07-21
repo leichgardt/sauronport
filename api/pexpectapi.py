@@ -1,14 +1,25 @@
 import pexpect
-from functools import wraps
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + '/../../'))
+
+from api.config import Configer
 
 
-class IronPExpect:
-    """docstring"""
+class PExpectAPI:
 
-    def __init__(self):
+    """
+    Класс PExpectAPI предназначен для вытягивания логов из свичей типа D-Link и SNR,
+    а также включения на них протокола RMON. Класс используется в web-приложении SauronPort.
+    """
+
+    def __init__(self, **kwargs):
+        self.cfg = Configer().upload(module='PExpect')
+        self.user = kwargs.get('user', self.cfg('user', ''))
+        self.__password = kwargs.get('password', self.cfg('password', ''))
+
         self.ip = ''
-        self.user = ''
-        self.__password = ''
         self.pages = 1
         self.log = ''
         self.telnet = pexpect.spawn('ls')
@@ -30,16 +41,18 @@ class IronPExpect:
             elif connectionResult == 1:
                 print("Telnet connection refused")
                 self.connected = False
+                self.user = self.cfg('user')
+                self.__password = self.cfg('password')
                 return False
         except Exception as e:
             print('Exception!', e)
             return False
 
-    def logs(self, ip='', user='', password='', input_pages=1):
-        self.ip = ip
-        self.user = user
-        self.__password = password
-        self.pages = int(input_pages)
+    def logs(self, **kwargs):
+        self.ip = kwargs.get('ip', self.ip)
+        self.user = kwargs.get('user', self.user)
+        self.__password = kwargs.get('password', self.__password)
+        self.pages = kwargs.get('pages', self.pages)
 
         if self._tn_auth():
             if self.switchType is 0:
@@ -85,10 +98,10 @@ class IronPExpect:
             else:
                 return "Logs are not available. Please, send report to administrator."
 
-    def enable_rmon(self, ip='', user='', password=''):
-        self.ip = ip
-        self.user = user
-        self.__password = password
+    def enable_rmon(self, **kwargs):
+        self.ip = kwargs.get('ip', self.ip)
+        self.user = kwargs.get('user', self.user)
+        self.__password = kwargs.get('password', self.__password)
 
         if self._tn_auth():
             if self.switchType is 0:
@@ -119,16 +132,12 @@ class IronPExpect:
 
 
 if __name__ == '__main__':
-    # ip = "192.168.110.87"
-    ip = "192.168.110.71"
-    user = "test"
-    password = "123321"
-    pages = 3
+    from getpass import getpass
 
-    tn = IronPExpect()
-    print(tn.logs(ip, user, password, 1))
+    ip = "192.168.111.73"
+    user = "admin"
+    password = getpass("Password: ")
+    pages = 1
 
-    # tn = pexpect.spawn('telnet ' + ip, timeout=0.2)
-    # tn.sendline(user)
-    # tn.sendline(password)
-    # tn.expect(['#', pexpect.TIMEOUT])
+    tn = PExpectAPI()
+    print(tn.logs(ip=ip, user=user, password=password, pages=1))

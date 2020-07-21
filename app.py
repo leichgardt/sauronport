@@ -1,16 +1,17 @@
-__author__ = 'mamaragan'
+__author__ = 'leichgardt'
 
+import os
 from flask import Flask, request, render_template, redirect, url_for
 from logging import Formatter, INFO
 from logging.handlers import RotatingFileHandler
-import os
-from api.iron_pysnmp_class import IronSNMP
-from api.iron_pexpect_class import IronPExpect
-from api.config import *
+from api.pysnmpapi import PySNMPApi
+from api.pexpectapi import PExpectAPI
+from api.config import Configer
 
 app = Flask(__name__, static_folder='static')
-snmp = [IronSNMP() for _ in range(3)]
-telnet = IronPExpect()
+snmp = [PySNMPApi() for _ in range(3)]
+telnet = PExpectAPI()
+host_domain = Configer().upload(module='Paladin')('domain')
 
 if not app.debug:
     if not os.path.exists('logs'):
@@ -31,12 +32,12 @@ if __name__ == '__main__':
 
 @app.route('/')
 def index():
+    about = 'Приложение "SauronPort" предназначено для мониторинга портов и вытягивания логов коммутаторов.'
     return render_template('index.html',
-                           title='iMonit',
-                           about=ABOUT,
+                           title='SauronPort',
+                           about=about,
                            version='0.4.0b Beta version',
-                           main_url='http://cup.ironnet.info:5000',
-                           libs=LIBS)
+                           main_url=host_domain + '/sauronport')
 
 
 @app.route('/favicon.ico')
@@ -51,11 +52,11 @@ def reload_port():
             ip = request.args.get('ip', '')
             port = request.args.get('port', '')
             mode = request.args.get('mode', '')  # 1 - reload, 2 - disable
-            print(mode)
 
             return {"answer": snmp[0].reload_port(ip, port, int(mode))}
     except Exception as e:
         print('[post_request_logs] exception:', e)
+        return -1
 
 
 @app.route('/api/update_sys', methods=['GET'])
@@ -64,7 +65,7 @@ def post_request_sysdata():
         if request.method == 'GET':
             ip = request.args.get('ip', '')
             if len(ip) == 0:
-                return 'Invalid arguments', 400
+                return 0
             else:
                 sysname = snmp[0].get_sysname(ip)
                 if sysname is -1 or sysname is 'timeout':
@@ -79,6 +80,7 @@ def post_request_sysdata():
                 }
     except Exception as e:
         print('[post_request] exception:', e)
+        return -1
 
 
 @app.route('/api/update_port', methods=['GET'])
@@ -88,7 +90,7 @@ def post_request_portdata():
             ip = request.args.get('ip', '')
             port = request.args.get('port', '')
             if len(ip) == 0 and len(port) == 0:
-                return 'Invalid arguments', 400
+                return 0
             else:
                 status = snmp[1].get_port_status(ip, port)
                 link = snmp[1].get_port_link(ip, port)
@@ -108,6 +110,7 @@ def post_request_portdata():
                 }
     except Exception as e:
         print('[post_request] exception:', e)
+        return -1
 
 
 @app.route('/api/update_err', methods=['GET'])
@@ -117,7 +120,7 @@ def post_request_porterrors():
             ip = request.args.get('ip', '')
             port = request.args.get('port', '')
             if len(ip) == 0 and len(port) == 0:
-                return 'Invalid arguments', 400
+                return 0
             else:
                 rx, tx = snmp[2].get_errors(ip, port)
 
@@ -127,6 +130,7 @@ def post_request_porterrors():
                 }
     except Exception as e:
         print('[post_request] exception:', e)
+        return -1
 
 
 @app.route('/api/update_auto', methods=['GET'])
@@ -136,7 +140,7 @@ def auto_request():
             ip = request.args.get('ip', '')
             port = request.args.get('port', '')
             if len(ip) == 0 and len(port) == 0:
-                return 'Invalid arguments', 400
+                return 0
             else:
                 uptime = snmp[0].get_sysuptime(ip)
                 status, link, speed, vlans, macs = snmp[1].get_update(ip, port)
@@ -154,6 +158,7 @@ def auto_request():
                 }
     except Exception as e:
         print('[auto_request] exception:', e)
+        return -1
 
 
 @app.route('/api/update_log', methods=['POST'])
@@ -163,17 +168,19 @@ def post_request_logs():
             json_data = request.get_json()
             ip = json_data.get('ip', '')
             login = json_data.get('login', '')
-            # password = rsa.decode(json_data.get('password', ''))
             password = json_data.get('password', '')
             pages = json_data.get('pages', '')
 
             if len(ip) == 0 and len(login) == 0:
-                return 'Invalid arguments', 400
+                return 0
             else:
-                print(ip, login, password, pages)
-                return {"logs": telnet.logs(ip, login, password, pages)}
+                if login == '':
+                    return {"logs": telnet.logs(ip=ip, pages=int(pages))}
+                else:
+                    return {"logs": telnet.logs(ip=ip, user=login, password=password, pages=int(pages))}
     except Exception as e:
         print('[post_request_logs] exception:', e)
+        return -1
 
 
 @app.route('/api/enable_rmon', methods=['POST'])
@@ -183,9 +190,8 @@ def post_request_enable_rmon():
             json_data = request.get_json()
             ip = json_data.get('ip', '')
             login = json_data.get('login', '')
-            # password = rsa_decode(json_data.get('password', ''))
             password = json_data.get('password', '')
 
-            return {"answer": telnet.enable_rmon(ip, login, password)}
+            return {"answer": telnet.enable_rmon(ip=ip, user=login, password=password)}
     except Exception as e:
         print("[post_request_rsa] error", e)

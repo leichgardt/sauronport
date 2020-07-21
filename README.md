@@ -1,23 +1,29 @@
-# Python Flask project FlaSNMP
-Port Monitoring on Switch with Flask and pysnmp into WEB-app.
-
-### Todo list
- - SNR RX-Frames `Symbol` errors
- - Several ports in interval
- - `.js` syntax error handler
- - Rework the `index.js` with Webpack
-
+# SauronPort
+Port Monitoring on Switches with Flask and pysnmp into WEB-app (python-flask-uwsgi).
 
 ### Installation
+Install dependencies
 ```sh
-$ git clone git@github.com:mamaragan/FlaSNMP.git
-$ cd FlaSNMP
-$ virtualenv -p python3 venv
+$ sudo apt update
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository ppa:deadsnakes/ppa
+$ sudo apt-get install liblzma-dev lzma
+$ sudo apt-get install libpcre3 libpcre3-dev python3.8 python3.8-dev
+```
+And then clone the project
+```
+$ git clone git@github.com:leichgardt/sauronport.git
+$ cd billeach
+$ python3.8 -m venv venv
 $ source venv/bin/activate
-$ pip install -r requirements.txt
 ```
 
 ### Starting
+If everything was done correctly, check it by running flask
 ```sh
 $ flask run
+```
+uWSGI runs by script (without venv are possible)
+```sh
+$ uwsgi --ini uwsgi.ini
 ```

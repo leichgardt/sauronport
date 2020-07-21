@@ -24,15 +24,38 @@ Welcome! Ver descriptions allocated here:
 0.4.0 - PySNMP enabling/disabling ports
     a - inclusion of reload port modal
     b - code restructure and optimization
+    с - SauronPort - no more login for getting logs (only at exceptions)
+(release candidate)
+0.5.0 - view of all switch port statuses
+0.5.1 - https
 
 --->
 {% extends "base.html" %}
+{% block imports %}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="shortcut icon"
+          href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+{% block style %}
+<style>
+html {
+    background: #00141E url({{ url_for('static', filename='jpg/wallpaper.jpg') }}) center center no-repeat fixed;
+    -webkit-background-size:cover;
+    -moz-background-size:cover;
+    -o-background-size:cover;
+    background-size:cover;
+}
+</style>
+{% endblock %}
 {% block content %}
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="errors-modal" tabindex="-1" role="dialog" aria-labelledby="errors-modal-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Ошибки порта</h5>
+                <h5 class="modal-title" id="errors-modal-label">Ошибки порта</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -42,12 +65,42 @@ Welcome! Ver descriptions allocated here:
                 Для этого нажмите:
                 <ul>
                     <li>
-                        Стрелочка вниз кнопки "Логи"
+                        на стрелочку '▼' возле кнопки "Логи"
                     </li>
                     <li>
-                        Кнопка "Включить RMON"
+                        в выпадшем меню на кнопку "Включить RMON"
                     </li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="login-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="login-modal-label">Авторизация на коммутаторе</h5>
+                <button id="close-login-modal-button" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-justify">
+                <div class="form-row">
+                    Введите логин и пароль для доступа к коммутатору:<br />
+                    <div class="form-group col-5">
+                        <label class="sr-only" for="input-login">Логин</label>
+                        <input id="input-login" type=text placeholder="Логин" class="form-control form-control-sm">
+                    </div>
+                    <div class="form-group col-5">
+                        <label class="sr-only" for="input-password">Пароль</label>
+                        <input id="input-password" type=password value="" placeholder="Пароль" class="form-control form-control-sm">
+                    </div>
+                    <div class="form-group col-2">
+                        <button type="button" id="auth-button" class="btn btn-sm btn-outline-primary w-100">
+                            <span class="collapse show" id="modal-logs-button">Логи</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -66,44 +119,52 @@ Welcome! Ver descriptions allocated here:
     </div>
 </div>
 <div id="cover-caption">
-    <div class="container">
-        <div class="row text-white">
-            <div class="col-xl-7 col-lg-8 col-md-10 col-sm-12 mx-auto text-center form p-2">
+    <div class="container text-white">
+        <div class="row">
+            <div class="col-12 mx-auto text-center form p-2" style="height: 120px">
                 <div class="px-2">
                     <form name="update" method="get" class="justify-content-center">
-                        <h5>Мониторинг порта</h5>
                         <div class="form-row">
-                            <div class="col-4">IP</div>
-                            <div class="col-2">Порт</div>
-                            <div class="col-3">Автообнов.</div>
-                            <div class="col-3"></div>
-                            <div class="form-group col-4">
+                            <div class="col-7">
+                                <h5>Мониторинг порта</h5>
+                            </div>
+                            <div class="col-5">
+                                <h5>Логи коммутатора</h5>
+                            </div>
+                            <div class="col-2">IP</div>
+                            <div class="col-1">Порт</div>
+                            <div class="col-2">Автообнов.</div>
+                            <div class="col-2"></div>
+                            <div class="col-5">Кол-во стр.</div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-2">
                                 <label class="sr-only" for="input-ip">IP</label>
-                                    <input id="input-ip" type=text value="192.168.110.87" placeholder="IP-адрес свича" class="form-control">
+                                    <input id="input-ip" type=text value="192.168.111.73" placeholder="IP-адрес свича" class="form-control form-control-sm">
                                 <div class="invalid-tooltip">Проверьте IP</div>
                             </div>
-                            <div class="form-group col-2">
+                            <div class="form-group col-1">
                                 <label class="sr-only" for="input-port">Порт</label>
-                                    <input id="input-port" type=text value="3" placeholder="Номер порта" class="form-control">
+                                    <input id="input-port" type=text value="3" placeholder="Номер порта" class="form-control form-control-sm">
                                 <div class="invalid-tooltip">Проверте порт</div>
                             </div>
-                            <div class="form-group col-3">
+                            <div class="form-group col-2">
                                 <label class="sr-only" for="update-every">Обновление</label>
-                                <select class="custom-select" id="update-every">
-                                    <option selected>Не обновл.</option>
-                                    <option value="3">3 сек</option>
+                                <select class="custom-select custom-select-sm" id="update-every">
+                                    <option>Не обновл.</option>
+                                    <option value="3" selected>3 сек</option>
                                     <option value="5">5 сек</option>
                                     <option value="10">10 сек</option>
                                     <option value="60">1 мин</option>
                                 </select>
                             </div>
-                            <div class="form-group btn-group col-3">
-                                <button type="button" id="start-button" class="btn btn-outline-primary w-100">
+                            <div class="form-group btn-group col-2">
+                                <button type="button" id="start-button" class="btn btn-sm btn-outline-primary w-100">
                                     <span class="spinner-border spinner-border-sm m-1 collapse" id="button-spinner" role="status"></span>
                                     <span class="collapse show" id="button-value">Запуск</span>
                                 </button>
                                 <div class="btn-group" role="group">
-                                    <button id="btnGroupDrop1" type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                    <button id="btnGroupDrop1" type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
                                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btnGroupDrop1">
                                         <h6 class="dropdown-header">Управление портами</h6>
                                         <button type="button" id="enable-port-button" class="dropdown-item">Перезапустить порт</button>
@@ -111,37 +172,24 @@ Welcome! Ver descriptions allocated here:
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <h5>Логи коммутатора</h5>
-                        <div class="form-row">
-                            <div class="col-3">Логин</div>
-                            <div class="col-3">Пароль</div>
-                            <div class="col-3">Кол-во стр.</div>
-                            <div class="col-3"></div>
-                            <div class="form-group col-3">
-                                <label class="sr-only" for="input-login">Логин</label>
-                                <input id="input-login" type=text value="admin" placeholder="Логин" class="form-control">
-                                <div class="invalid-tooltip">Проверьте логин</div>
-                            </div>
-                            <div class="form-group col-3">
-                                <label class="sr-only" for="input-password">Пароль</label>
-                                <input id="input-password" type=password value="" placeholder="Пароль" class="form-control">
-                            </div>
-                            <div class="form-group col-3">
-                                <label class="sr-only" for="input-pages">Кол-во стр.</label>
-                                <input id="input-pages" type=number value="1" placeholder="Кол-во стр." class="form-control">
-                            </div>
-                            <div class="form-group btn-group col-3" role="group">
-                                <button type="button" id="logs-button" class="btn btn-outline-primary w-100">
-                                    <span class="spinner-border spinner-border-sm m-1 collapse" id="logs-button-spinner" role="status"></span>
-                                    <span class="collapse show" id="logs-button-value">Логи</span>
-                                </button>
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupDrop2" type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btnGroupDrop2">
-                                        <h6 class="dropdown-header">Управление коммутатором</h6>
-                                        <button type="button" id="enable-rmon-button" class="dropdown-item" >Включить RMON</button>
-{#                                        <a class="dropdown-item" href="#">Dropdown link</a>#}
+                            <div class="col-5 form-row justify-content-right">
+                                <div class="form-group col-6">
+                                    <label class="sr-only" for="input-pages">Кол-во стр.</label>
+                                    <input id="input-pages" type=number value="1" placeholder="Кол-во стр." class="form-control form-control-sm">
+                                </div>
+                                <div class="form-group btn-group col-6" role="group">
+                                    <button type="button" id="logs-button" class="btn btn-sm btn-outline-primary w-100">
+                                        <span class="spinner-border spinner-border-sm m-1 collapse" id="logs-button-spinner" role="status"></span>
+                                        <span class="collapse show" id="logs-button-value">Выгрузить логи</span>
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button id="btnGroupDrop2" type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="btnGroupDrop2">
+                                            <h6 class="dropdown-header">Управление коммутатором</h6>
+                                            <button type="button" id="login-button" class="dropdown-item" data-toggle="modal" data-target="#login-modal">Загрузить логи по логину</button>
+                                            <button type="button" id="enable-rmon-button" class="dropdown-item" >Включить RMON</button>
+    {#                                        <a class="dropdown-item" href="#">Dropdown link</a>#}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -195,7 +243,7 @@ Welcome! Ver descriptions allocated here:
                                     <div class="text-center">
                                         <a data-toggle="collapse" href="#collapseError" role="button" aria-expanded="true" aria-controls="collapseError">Ошибки порта</a>
                                         <div style="float: right">
-                                            <a href="#exampleModal" role="button" data-toggle="modal" data-target="#exampleModal">
+                                            <a href="#errors-modal" role="button" data-toggle="modal" data-target="#errors-modal">
                                                 <i class="fa fa-question-circle"></i>
                                             </a>
                                         </div>
