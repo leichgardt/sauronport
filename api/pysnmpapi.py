@@ -34,7 +34,7 @@ class PySNMPApi(PySNMPCore):
 
     def get_syslocation(self, ip):
         rez = self._snmp_pretty(self.snmp_cmd('get', ip, 'sysLocation', 'SNMPv2-MIB', attrib=0))
-        if rez is '' or rez is -1:
+        if rez == '' or rez == -1:
             return 'n/a'
         else:
             return rez.strip()
@@ -66,21 +66,21 @@ class PySNMPApi(PySNMPCore):
 
         if varBinds != -1:
             rez = self._snmp_pretty(varBinds)
-            if rez is '1':
+            if rez == '1':
                 self._port_link = 'up'
-            elif rez is '2':
+            elif rez == '2':
                 self._port_link = 'down'
-            elif rez is '3':
+            elif rez == '3':
                 self._port_link = 'testing'
-            elif rez is '4':
+            elif rez == '4':
                 self._port_link = 'unknown'
-            elif rez is '5':
+            elif rez == '5':
                 self._port_link = 'dormant'
-            elif rez is '6':
+            elif rez == '6':
                 self._port_link = 'notPresent'
-            elif rez is '7':
+            elif rez == '7':
                 self._port_link = 'lowerLayerDown'
-            elif rez is -1:
+            elif rez == -1:
                 self._port_link = 'noResponse'
             else:
                 self._port_link = rez
@@ -90,9 +90,9 @@ class PySNMPApi(PySNMPCore):
 
     def get_port_speed(self, ip, port):
         """Возвращает скорость порта в Mbit/sec или Gbit/sec"""
-        if self._port_link is '':
+        if self._port_link == '':
             self.get_port_link(ip, port)
-        if self._port_link is 'noResponse':
+        if self._port_link == 'noResponse':
             return 'n/a'
         else:
             varBind = self.snmp_cmd('get', ip, 'ifSpeed', 'IF-MIB', attrib=port)
@@ -114,7 +114,7 @@ class PySNMPApi(PySNMPCore):
     def get_port_mac(self, ip, port):
         """Возвращает таблицу MAC-адресов и их VLAN на порту"""
         varTable = self.snmp_cmd('walk', ip, 'dot1qTpFdbPort', 'Q-BRIDGE-MIB')
-        if varTable is not -1:
+        if varTable != -1:
             macs = []
             vlans = []
             for varBinds in varTable:
@@ -193,7 +193,7 @@ class PySNMPApi(PySNMPCore):
                 hex_part = hex_port_list[i:i+2]
                 bin_list += bin(int(hex_part, 16))[2:].zfill(8)
             for i, b in enumerate(bin_list):
-                if b is '1':
+                if b == '1':
                     ports.append(i + 1)
             common_list.update({vlan.split('.')[-1]: ports})
         return common_list
@@ -207,7 +207,7 @@ class PySNMPApi(PySNMPCore):
             vlans = self.snmp_cmd('walk', ip, 'dot1qVlanStaticEgressPorts', 'Q-BRIDGE-MIB')
             untag_vlans = self.snmp_cmd('walk', ip, 'dot1qVlanStaticUntaggedPorts', 'Q-BRIDGE-MIB')
 
-            if vlans is -1 or untag_vlans is -1:
+            if vlans == -1 or untag_vlans == -1:
                 raise Exception('[vlan_tag_check] error')
 
             vlans = self.hex_vlan_port_parser(vlans)

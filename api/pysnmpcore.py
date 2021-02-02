@@ -36,7 +36,7 @@ class PySNMPCore:
         load = kwargs.get('load', False)
         private = kwargs.get('private', False)
 
-        if mib is '':
+        if mib == '':
             ObjId = ObjectIdentity(obj)
         elif attrib is None:
             ObjId = ObjectIdentity(mib, obj)
@@ -50,13 +50,13 @@ class PySNMPCore:
 
         self._set_community('private') if private else self._set_community('public')
 
-        if cmd is 'get':
+        if cmd == 'get':
             snmp_cmd = getCmd(self.__ENGINE,
                               self._COMMUNITY_DATA,
                               UdpTransportTarget((ip, 161), timeout=2.0, retries=1),
                               self.__CONTEXT_DATA,
                               ObjType)
-        elif cmd is 'walk':
+        elif cmd == 'walk':
             snmp_cmd = bulkCmd(self.__ENGINE,
                                self._COMMUNITY_DATA,
                                UdpTransportTarget((ip, 161), timeout=2.0, retries=1),
@@ -64,7 +64,7 @@ class PySNMPCore:
                                0, 25,  # nonRepeaters / maxRepetitions - MIB num are requesting
                                ObjType,
                                lexicographicMode=False)
-        elif cmd is 'set':
+        elif cmd == 'set':
             snmp_cmd = setCmd(self.__ENGINE,
                               self._COMMUNITY_DATA,
                               UdpTransportTarget((ip, 161), timeout=2.0, retries=1),
@@ -75,7 +75,7 @@ class PySNMPCore:
             return -1
 
         try:
-            if cmd is 'walk':
+            if cmd == 'walk':
                 rez = []
                 for errInd, errStat, errId, varBinds in snmp_cmd:
                     if errInd or errStat or errId:
@@ -125,7 +125,7 @@ class PySNMPCore:
         """метод для формирования красивого вывода: вытягивание ответа из объекта запроса"""
         if isinstance(obj, str):
             return obj
-        elif obj is -1:
+        elif obj == -1:
             return -1
         else:
             if last:

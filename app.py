@@ -68,7 +68,7 @@ def post_request_sysdata():
                 return 0
             else:
                 sysname = snmp[0].get_sysname(ip)
-                if sysname is -1 or sysname is 'timeout':
+                if sysname == -1 or sysname == 'timeout':
                     sysname, syslocation, sysuptime = 'n/a', 'n/a', 'n/a'
                 else:
                     syslocation = snmp[0].get_syslocation(ip)
@@ -94,9 +94,9 @@ def post_request_portdata():
             else:
                 status = snmp[1].get_port_status(ip, port)
                 link = snmp[1].get_port_link(ip, port)
-                if link is 'down':
+                if link == 'down':
                     speed, vlans, macs = '-', '-', '-'
-                elif link is -1 or link is 'timeout':
+                elif link == -1 or link == 'timeout':
                     speed, vlans, macs = 'n/a', 'n/a', 'n/a'
                 else:
                     speed = snmp[1].get_port_speed(ip, port)

@@ -25,25 +25,28 @@ class PExpectAPI:
         self.telnet = pexpect.spawn('ls')
         self.connected = False
         self.switchType = 0
+        self.timeout = 2
 
     def _tn_auth(self):
         try:
-            self.telnet = pexpect.spawn("telnet " + self.ip, timeout=2)
+            self.telnet = pexpect.spawn("telnet " + self.ip, timeout=self.timeout)
             self.switchType = self.telnet.expect(["User[Nn]ame:", "login:"])  # 0 - d-link, 1 - snr
             self.telnet.sendline(self.user)
             self.telnet.expect(["[Pp]ass[Ww]ord:"])
             self.telnet.sendline(self.__password)
             connectionResult = self.telnet.expect(["#", pexpect.TIMEOUT])
             if connectionResult == 0:
-                print("Telnet Auth success")
+                # print("Telnet Auth success")
                 self.connected = True
                 return True
             elif connectionResult == 1:
-                print("Telnet connection refused")
+                # print("Telnet connection refused")
                 self.connected = False
                 self.user = self.cfg('user')
                 self.__password = self.cfg('password')
                 return False
+        except pexpect.TIMEOUT:
+            pass
         except Exception as e:
             print('Exception!', e)
             return False
@@ -55,7 +58,7 @@ class PExpectAPI:
         self.pages = kwargs.get('pages', self.pages)
 
         if self._tn_auth():
-            if self.switchType is 0:
+            if self.switchType == 0:
                 self.telnet.sendline("sh log")
                 for _ in range(self.pages):
                     self.telnet.sendline("n")
@@ -73,7 +76,7 @@ class PExpectAPI:
                 self.log = '\n'.join(self.log[:-1])
                 self.telnet.close()
                 return self.log
-            elif self.switchType is 1:
+            elif self.switchType == 1:
                 self.telnet.sendline('sh log buf lev warn')
                 self.telnet.sendline('q')
                 '1', self.telnet.expect(['#', pexpect.TIMEOUT])
@@ -104,14 +107,14 @@ class PExpectAPI:
         self.__password = kwargs.get('password', self.__password)
 
         if self._tn_auth():
-            if self.switchType is 0:
+            if self.switchType == 0:
                 self.telnet.sendline("enable rmon")
                 self.telnet.expect(["Success", pexpect.TIMEOUT])
                 self.telnet.sendline("save config")
                 self.telnet.expect(["Success", pexpect.TIMEOUT])
                 self.telnet.close()
                 return self.telnet.before.decode('ascii')
-            elif self.switchType is 1:
+            elif self.switchType == 1:
                 self.telnet.sendline("config")
                 self.telnet.sendline("rmon enable")
                 self.telnet.sendline("exit")
