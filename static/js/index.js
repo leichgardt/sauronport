@@ -347,7 +347,7 @@ $(document).ready(function() {
     }
 
     function auth_valid() {
-        return (login_element.value === '' || ip_element.value === '' || pages_element.value === '' || pages_element.value === '0')
+        return !(login_element.value === '' || ip_element.value === '' || pages_element.value === '' || pages_element.value === '0')
     }
 
     logs_button.onclick = function get_logs() {
@@ -432,14 +432,9 @@ $(document).ready(function() {
 
     enable_rmon_button.onclick = function enable_rmon() {
         console.log("Enabling RMON...", auth_valid());
-        update_enable_rmon(ip_element.value, login_element.value, password_element.value);
-        // if (auth_valid()) {
-        //     // button_status('loading', 'logs_drop');
-        //     update_enable_rmon(ip_element.value, login_element.value, password_element.value);
-        // }
-        // else {
-        //     // button_status('error', 'logs_drop');
-        // }
+        if (auth_valid()) {
+            update_enable_rmon(ip_element.value, login_element.value, password_element.value);
+        }
     };
 
     function update_enable_rmon(ip_val, login_val, password_val) {
@@ -459,7 +454,6 @@ $(document).ready(function() {
                     modal_button.click();
                 } else {
                     console.log("RMON enabled:", data);
-                    setTimeout(start_button.click, 250);
                 }
             })
             .catch(error => {
