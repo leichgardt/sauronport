@@ -102,10 +102,9 @@ class PExpectAPI:
                 return "Logs are not available. Please, send report to administrator."
 
     def enable_rmon(self, **kwargs):
-        self.ip = kwargs.get('ip', self.ip)
-        self.user = kwargs.get('user', self.user)
-        self.__password = kwargs.get('password', self.__password)
-
+        self.ip = kwargs.get('ip') or self.ip
+        self.user = kwargs.get('user') or self.user
+        self.__password = kwargs.get('password') or self.__password
         if self._tn_auth():
             if self.switchType == 0:
                 self.telnet.sendline("enable rmon")
